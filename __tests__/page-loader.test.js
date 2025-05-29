@@ -127,7 +127,10 @@ test("Debería lanzar un error si la solicitud HTTP principal falla", async () =
       .get("/page")
       .reply(500, errorMessage); // Simula un error 500 con un mensaje de error
 
-    
+    // Guarda la implementación original de console.error
+    const originalConsoleError = console.error;
+    // Sobreescribe console.error para que no haga nada durante este test
+    console.error = jest.fn();
 
     await expect(pageLoader(urlThatFails, tempDir))
       .rejects
@@ -135,5 +138,6 @@ test("Debería lanzar un error si la solicitud HTTP principal falla", async () =
 
     expect(nock.isDone()).toBe(true);
 
-    
+    // Restaura la implementación original de console.error
+    console.error = originalConsoleError;
 });
