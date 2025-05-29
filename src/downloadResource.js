@@ -2,6 +2,7 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import path from "path";
 import fs from "fs/promises";
+import debug from 'debug';
 
 //Obtenemos el hostname
 const prefixName = (url, fullUrl) => {
@@ -22,9 +23,13 @@ const directoryName = (url) => {
   return deleteProtocol.replace(/[^a-zA-Z0-9]/g, "-") + "_files"; //Obtenemos este reemplazo: "codica-la-cursos_files"
 };
 
+//inicializamos debug con un namespace personalizado
+const log = debug('page-loader:resource');
+
 const downloadResource = async (url, outputDir) => {
   const response = await axios.get(url); // Ejemplo: url = "https://codica.la/cursos"
   const html = response.data; // Lo que queremos obtener de respuesta del get url es el html que esta en .data
+  log(`Iniciado descarga de HTML de ${url}`);
   const $ = cheerio.load(html); // Cargamos cheerio para usar JQuery en este html
 
   // Obtenemos el origen de la página, ej: "https://codica.la/cursos"
@@ -108,12 +113,13 @@ const downloadResource = async (url, outputDir) => {
   for (const { url: resourceUrl, filename, type } of resources) {
     try {
       const fullPath = path.join(resultPath, filename); // fullpath = "/ruta-actual/codica-la-cursos_files/codica-la-nodejs.png"
-
+      log(`Descargando recurso: ${filename}`);
       // Determinamos el responseType basado en el 'type' que agregamos
       const responseType = type === "text" ? "text" : "arraybuffer";
 
       const response = await axios.get(resourceUrl, {responseType}); // Realizamos una solicitud get al url del array resources, url = "https://codica.la/assets/professions/nodejs.png"
       await fs.writeFile(fullPath, response.data); // Solo guardamos la .data en un directorio local "/ruta-actual/codica-la-cursos_files/codica-la-nodejs.png"
+      log(`Recurso guardado: ${fullPath}`);
     } catch (e) {
       console.error(
         `Error al descargar o guardar el recurso ${url}:`, // Si hay un error lo devuelvo, pero no detengo el proceso
@@ -143,6 +149,7 @@ const downloadResource = async (url, outputDir) => {
       if (resource) {
         const localPath = path.join(directoryName(url), resource.filename);
         $(element).attr(attr, localPath);
+        log(`Modificamos el recurso ${attr} a la ruta local: ${resource.filename}`);
       }
     });
   }
