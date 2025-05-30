@@ -1,0 +1,97 @@
+Me sale este mensaje en mi terminal:
+porico94@Pool:/mnt/c/Users/poolr/Cursos de Programación/Curso Fullstack Codica/fullstack-javascript-project-138$ npm test
+
+> @hexlet/code@1.0.0 test
+> jest
+
+ FAIL  __tests__/page-loader.test.js (14.088 s)
+  ✓ Descargar el HTML principal y todos sus recursos(Imágenes, CSS, scripts) correctamente (99 ms)
+  ✕ Debería lanzar un error si la solicitud HTTP principal falla (72 ms)
+  ✕ Debería lanzar un error si no puede guardar el archivo HTML (45 ms)
+
+  ● Debería lanzar un error si la solicitud HTTP principal falla
+
+    expect(received).rejects.toThrow(expected)
+
+    Expected substring: "Falló la solicitud HTTP para https://nonexistent.com/page. Original: Request failed with status code 500"
+    Received message:   "Falló la solicitud HTTP para https://nonexistent.com/page. Error real: Request failed with status code 500"
+
+          23 |   } catch (err) {
+          24 |     console.error("Error detallado durante la descarga de recursos:", err.message);
+        > 25 |     throw new Error(`Falló la solicitud HTTP para ${url}. Error real: ${err.message}`);
+             |           ^
+          26 |   }
+          27 |
+          28 |   log(`Descarga de recursos y HTML modificado completado`);
+
+          at _callee$ (src/page-loader.js:25:11)
+          at call (src/page-loader.js:2:1)
+          at Generator.s (src/page-loader.js:2:1)
+          at Generator._invoke [as throw] (src/page-loader.js:2:1)
+          at asyncGeneratorStep (src/page-loader.js:2:1)
+          at asyncGeneratorStep (src/page-loader.js:2:1)
+
+      135 |     await expect(pageLoader(urlThatFails, tempDir))
+      136 |       .rejects
+    > 137 |       .toThrow(`Falló la solicitud HTTP para ${urlThatFails}. Original: Request failed with status code 500`);
+          |        ^
+      138 |
+      139 |     expect(nock.isDone()).toBe(true);
+      140 |
+
+      at Object.toThrow (node_modules/expect/build/index.js:218:22)
+      at toThrow (__tests__/page-loader.test.js:137:8)
+      at call (__tests__/page-loader.test.js:2:1)
+      at Generator.s (__tests__/page-loader.test.js:2:1)
+      at Generator._invoke [as next] (__tests__/page-loader.test.js:2:1)
+      at asyncGeneratorStep (__tests__/page-loader.test.js:2:1)
+      at asyncGeneratorStep (__tests__/page-loader.test.js:2:1)
+      at _next (__tests__/page-loader.test.js:2:1)
+      at Object.<anonymous> (__tests__/page-loader.test.js:2:1)
+
+  ● Debería lanzar un error si no puede guardar el archivo HTML
+
+    expect(received).rejects.toThrow(expected)
+
+    Expected pattern: /No se pudo guardar el archivo/
+    Received message: "Falló la solicitud HTTP para https://ejemplo.com/page. Error real: Nock: Disallowed net connect for \"ejemplo.com:443/page\""
+
+          23 |   } catch (err) {
+          24 |     console.error("Error detallado durante la descarga de recursos:", err.message);
+        > 25 |     throw new Error(`Falló la solicitud HTTP para ${url}. Error real: ${err.message}`);
+             |           ^
+          26 |   }
+          27 |
+          28 |   log(`Descarga de recursos y HTML modificado completado`);
+
+          at _callee$ (src/page-loader.js:25:11)
+          at call (src/page-loader.js:2:1)
+          at Generator.s (src/page-loader.js:2:1)
+          at Generator._invoke [as throw] (src/page-loader.js:2:1)
+          at asyncGeneratorStep (src/page-loader.js:2:1)
+          at asyncGeneratorStep (src/page-loader.js:2:1)
+
+      160 |   await expect(pageLoader(urlToDownload, outputDir))
+      161 |     .rejects
+    > 162 |     .toThrow(/No se pudo guardar el archivo/);
+          |      ^
+      163 |
+      164 |   expect(nock.isDone()).toBe(true);
+      165 |
+
+      at Object.toThrow (node_modules/expect/build/index.js:218:22)
+      at toThrow (__tests__/page-loader.test.js:162:6)
+      at call (__tests__/page-loader.test.js:2:1)
+      at Generator.s (__tests__/page-loader.test.js:2:1)
+      at Generator._invoke [as next] (__tests__/page-loader.test.js:2:1)
+      at asyncGeneratorStep (__tests__/page-loader.test.js:2:1)
+      at asyncGeneratorStep (__tests__/page-loader.test.js:2:1)
+      at _next (__tests__/page-loader.test.js:2:1)
+      at Object.<anonymous> (__tests__/page-loader.test.js:2:1)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 1 passed, 3 total
+Snapshots:   0 total
+Time:        14.612 s
+Ran all test suites.
+No entiendo porque falla el test no deberia pasar con un check ya que el error si se genera.

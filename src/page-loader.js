@@ -22,7 +22,7 @@ const pageLoader = async (url, outputDir = process.cwd()) => {
     htmlModified = await downloadResource(url, outputDir);
   } catch (err) {
     console.error("Error detallado durante la descarga de recursos:", err.message);
-    throw new Error(`Falló la solicitud HTTP para ${url}. Original: ${err.message}`);
+    throw new Error(`Falló la solicitud HTTP para ${url}. Error: ${err.message}`);
   }
 
   log(`Descarga de recursos y HTML modificado completado`);
@@ -30,7 +30,7 @@ const pageLoader = async (url, outputDir = process.cwd()) => {
     await fs.writeFile(filePath, htmlModified);
   } catch (err) {
     console.error("Error detallado al guardar el archivo:", err.message);
-    throw new Error(`No se pudo guardar el archivo en ${filePath}. Original: ${err.message}`);
+    throw new Error(`No se pudo guardar el archivo en ${filePath}. Error: ${err.message}`);
   }
   log(`HTML modificado guardado en: ${filePath}`);
   return filePath;

@@ -134,10 +134,35 @@ test("Debería lanzar un error si la solicitud HTTP principal falla", async () =
 
     await expect(pageLoader(urlThatFails, tempDir))
       .rejects
-      .toThrow(`Falló la solicitud HTTP para ${urlThatFails}. Original: Request failed with status code 500`);
+      .toThrow(`Falló la solicitud HTTP para ${urlThatFails}. Error: Request failed with status code 500`);
 
     expect(nock.isDone()).toBe(true);
 
     // Restaura la implementación original de console.error
     console.error = originalConsoleError;
+});
+
+test("Debería lanzar un error si no puede guardar el archivo HTML", async () => {
+  // 🔁 Revertimos la deshabilitación de red solo en este test
+  nock.enableNetConnect();
+
+  const urlToDownload = "https://codica.la/cursos";
+  const htmlContent = "<html><body>Contenido de prueba</body></html>";
+
+  // Mock de la respuesta HTTP
+  nock("https://codica.la")
+    .get("/cursos")
+    .reply(200, htmlContent);
+
+  const outputDir = "/root"; // Directorio que típicamente requiere permisos de superusuario
+
+  // Guardamos y silenciamos temporalmente console.error para evitar ruido en consola
+  const originalConsoleError = console.error;
+  console.error = jest.fn();
+
+  await expect(pageLoader(urlToDownload, outputDir))
+    .rejects
+    .toThrow(`Falló la solicitud HTTP para ${urlToDownload}. Error: EACCES: permission denied, mkdir '/root/codica-la-cursos_files'`);  
+
+  console.error = originalConsoleError; // Restaurar console.error
 });
