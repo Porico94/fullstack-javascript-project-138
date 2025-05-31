@@ -3,6 +3,8 @@ import * as cheerio from "cheerio";
 import path from "path";
 import fs from "fs/promises";
 import debug from 'debug';
+import Listr from 'listr';
+
 
 //Obtenemos el hostname
 const prefixName = (url, fullUrl) => {
@@ -109,24 +111,26 @@ const downloadResource = async (url, outputDir) => {
   const resultPath = path.join(outputDir, directoryName(url)); //Obtenemos la ruta donde se creara el directorio 'outputDir/codica-la-cursos_files'
   await fs.mkdir(resultPath, { recursive: true }); //Creamos el directorio, y {recursive: true} ayuda para no generar problemas si ya existe ese directorio
 
-  //Guardamos cada elemento del array en la ruta, recordar { url, filename} son propiedes del array resources
-  for (const { url: resourceUrl, filename, type } of resources) {
-    try {
-      const fullPath = path.join(resultPath, filename); // fullpath = "/ruta-actual/codica-la-cursos_files/codica-la-nodejs.png"
-      log(`Descargando recurso: ${filename}`);
-      // Determinamos el responseType basado en el 'type' que agregamos
-      const responseType = type === "text" ? "text" : "arraybuffer";
-
-      const response = await axios.get(resourceUrl, {responseType}); // Realizamos una solicitud get al url del array resources, url = "https://codica.la/assets/professions/nodejs.png"
-      await fs.writeFile(fullPath, response.data); // Solo guardamos la .data en un directorio local "/ruta-actual/codica-la-cursos_files/codica-la-nodejs.png"
-      log(`Recurso guardado: ${fullPath}`);
-    } catch (e) {
-      console.error(
-        `Error al descargar o guardar el recurso ${url}:`, // Si hay un error lo devuelvo, pero no detengo el proceso
-        e.message
-      );
-    }
-  }
+  //Guardamos cada elemento del array en la ruta, recordar { url, filename} son propiedades del array resources
+  const tasks = new Listr(
+     resources.map(({ url: resourceUrl, filename, type }) => ({
+        title: `Descargando ${resourceUrl}`,
+        task: async () => {
+          const fullPathFile = path.join(resultPath, filename) // fullpath = "/ruta-actual/codica-la-cursos_files/codica-la-nodejs.png"
+          const responseType = type === "text" ? "text" : "arraybuffer"; // Determinamos el responseType basado en el 'type' que agregamos
+          try {
+            const response = await axios.get(resourceUrl, {responseType}); // Realizamos una solicitud get al url del array resources, url = "https://codica.la/assets/professions/nodejs.png"
+            await fs.writeFile(fullPathFile, response.data); // Solo guardamos la .data en un directorio local "/ruta-actual/codica-la-cursos_files/codica-la-nodejs.png"
+            log(`Recurso guardado: ${fullPathFile}`);
+          } catch (e) {
+            log(`Error en ${resourceUrl}: ${e.message}`);
+            throw new Error(`Error descargando ${resourceUrl}: ${e.message}`);
+          }
+        }
+      }))    
+  ,{ concurrent: true});
+  
+  await tasks.run();
 
   //Creamos una array de objetos que seran las etiquetas y los atributos que vamos a modificar
   const tagTypes = [
