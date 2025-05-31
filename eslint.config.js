@@ -9,7 +9,7 @@ export default defineConfig([
       ecmaVersion: "latest",
       sourceType: "module",
       globals: {
-        ...globals.node,  // 👈 Asegura entorno Node.js
+        ...globals.node,
         ...globals.jest,
       },
     },
