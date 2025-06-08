@@ -15,7 +15,13 @@ const pageLoader = async (url, outputDir = process.cwd()) => {
   log(`Iniciando page-loader para URL: ${url} en directorio: ${outputDir}`);
   const filename = cleanFilename(url);
   const filePath = path.join(outputDir, filename);
-
+  try {
+    await fs.mkdir(outputDir, {recursive: true});
+  } catch (err) {
+    throw new Error(`No se pudo crear el directorio de salida: ${outputDir}. Error: ${err.message}`);
+  }
+  log(`Directorio de salida verificado/creado: ${outputDir}`);
+  
   log(`Iniciando la descarga HTML y recursos de ${filename}`);
   let htmlModified;
   try {

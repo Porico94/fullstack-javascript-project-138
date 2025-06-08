@@ -143,7 +143,7 @@ test("Debería lanzar un error si la solicitud HTTP principal falla", async () =
 });
 
 test("Debería lanzar un error si no puede guardar el archivo HTML", async () => {
-  // 🔁 Revertimos la deshabilitación de red solo en este test
+  // Revertimos la deshabilitación de red solo en este test
   nock.enableNetConnect();
 
   const urlToDownload = "https://codica.la/cursos";
@@ -162,7 +162,39 @@ test("Debería lanzar un error si no puede guardar el archivo HTML", async () =>
 
   await expect(pageLoader(urlToDownload, outputDir))
     .rejects
-    .toThrow(`Falló la solicitud HTTP para ${urlToDownload}. Error: EACCES: permission denied, mkdir '/root/codica-la-cursos_files'`);  
+    .toThrow(`Falló la solicitud HTTP para ${urlToDownload}. Error: No se pudo crear el directorio de salida: /root. Error: EACCES: permission denied, mkdir '/root/codica-la-cursos_files'`);  
 
+  console.error = originalConsoleError; // Restaurar console.error
+});
+
+test("Debería lanzar un error si no existe el directorio de recursos", async () => {
+ 
+  const urlToDownload = "https://codica.la/cursos";
+  const htmlContent = "<html><body>Contenido de prueba</body></html>";
+
+  // Mock de la respuesta HTTP
+  nock("https://codica.la")
+    .get("/cursos")
+    .reply(200, htmlContent);
+
+  // Usamos jest.spyOn para sobrescribir temporalmente la implementación de mkdir.  
+  const mkdirSpy = jest.spyOn(fs, 'mkdir');
+
+  // Hacemos que la implementación mockeada de mkdir siempre lance un error
+  // para la primera llamada (que será la de downloadResource creando el directorio).
+  mkdirSpy.mockImplementationOnce(() => {
+    const error = new Error("Simulated mkdir permission error");
+    error.code = "EACCES"; // O 'ENOENT', dependiendo de lo que quieras simular
+    throw error;
+  });
+  // Guardamos y silenciamos temporalmente console.error para evitar ruido en consola
+  const originalConsoleError = console.error;
+  console.error = jest.fn();
+
+  await expect(pageLoader(urlToDownload, tempDir))
+    .rejects
+    .toThrow(`No se pudo crear el directorio de salida: ${tempDir}. Error: Simulated mkdir permission error`);  
+
+  mkdirSpy.mockRestore(); // Restauramos mkdir
   console.error = originalConsoleError; // Restaurar console.error
 });

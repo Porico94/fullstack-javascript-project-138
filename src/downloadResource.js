@@ -107,9 +107,13 @@ const downloadResource = async (url, outputDir) => {
   //Guardamos todos los array en uno solo, con get() se filtran los nulls
   const resources = [...images, ...links, ...scripts].filter(Boolean); // filter(Boolean) por si algún map devolvió null explícitamente
 
-  //creamos el directorio donde se guardaran los recursos
+  //Creamos el directorio donde se guardaran los recursos
   const resultPath = path.join(outputDir, directoryName(url)); //Obtenemos la ruta donde se creara el directorio 'outputDir/codica-la-cursos_files'
-  await fs.mkdir(resultPath, { recursive: true }); //Creamos el directorio, y {recursive: true} ayuda para no generar problemas si ya existe ese directorio
+  try {
+    await fs.mkdir(resultPath, { recursive: true }); //Creamos el directorio, y {recursive: true} ayuda para no generar problemas si ya existe ese directorio
+  } catch (err) {
+    throw new Error(`No se pudo crear el directorio de salida: ${outputDir}. Error: ${err.message}`);
+  }  
 
   //Guardamos cada elemento del array en la ruta, recordar { url, filename} son propiedades del array resources
   const tasks = new Listr(
