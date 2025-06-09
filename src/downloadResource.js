@@ -124,7 +124,8 @@ const downloadResource = async (url, outputDir) => {
           const responseType = type === "text" ? "text" : "arraybuffer"; // Determinamos el responseType basado en el 'type' que agregamos
           try {
             const response = await axios.get(resourceUrl, {responseType}); // Realizamos una solicitud get al url del array resources, url = "https://codica.la/assets/professions/nodejs.png"
-            await fs.writeFile(fullPathFile, response.data); // Solo guardamos la .data en un directorio local "/ruta-actual/codica-la-cursos_files/codica-la-nodejs.png"
+            const content = responseType === "text" ? response.data.replace(/^\uFEFF/, '') : response.data;
+            await fs.writeFile(fullPathFile, content); // Solo guardamos la .data en un directorio local "/ruta-actual/codica-la-cursos_files/codica-la-nodejs.png"
             log(`Recurso guardado: ${fullPathFile}`);
           } catch (e) {
             log(`Error en ${resourceUrl}: ${e.message}`);
