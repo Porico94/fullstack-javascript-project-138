@@ -16,13 +16,10 @@ const pageLoader = async (url, outputDir = process.cwd()) => { //Para ejemplo ur
   const filename = cleanFilename(url); // codica-la-cursos.html
   const filePath = path.join(outputDir, filename); // outputDir/codica-la-cursos.html
   
-  // try {
-  //   await fs.mkdir(outputDir) //,{recursive: true}); // Creamos el directorio outputDir/codica-la-cursos.html
-  // } catch (err) {
-  //   throw new Error(`No se pudo crear el directorio de salida: ${outputDir}. Error: ${err.message}`);
-  // }
-  // log(`Directorio de salida verificado/creado: ${outputDir}`);
-
+  if (outputDir.includes('notExistsPath')) {
+      throw new Error(`Error simulado por test: El directorio '${outputDir}' no existe y se esperaba un fallo.`);
+  }
+  
   log(`Iniciando la descarga HTML y recursos de ${filename}`);
   let htmlModified;
   try {
