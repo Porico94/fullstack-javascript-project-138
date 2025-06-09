@@ -20,6 +20,12 @@ const pageLoader = async (url, outputDir = process.cwd()) => { //Para ejemplo ur
       throw new Error(`Error simulado por test: El directorio '${outputDir}' no existe y se esperaba un fallo.`);
   }
   
+  try {
+    await fs.mkdir(outputDir, {recursive: true});
+  } catch (err) {
+    throw new Error(`No se pudo crear el directorio de salida: ${outputDir}. Error: ${err.message}`);
+  }
+  
   log(`Iniciando la descarga HTML y recursos de ${filename}`);
   let htmlModified;
   try {

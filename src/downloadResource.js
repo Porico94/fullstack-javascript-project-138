@@ -110,7 +110,7 @@ const downloadResource = async (url, outputDir) => {
   //Creamos el directorio donde se guardaran los recursos
   const resultPath = path.join(outputDir, directoryName(url)); //Obtenemos la ruta donde se creara el directorio 'outputDir/codica-la-cursos_files'
   try {
-    await fs.mkdir(resultPath)//, {recursive: true}); //Creamos el directorio outputDir/codica-la-cursos_files, y {recursive: true} ayuda para no generar problemas si ya existe ese directorio
+    await fs.mkdir(resultPath, {recursive: true}); //Creamos el directorio outputDir/codica-la-cursos_files, y {recursive: true} ayuda para no generar problemas si ya existe ese directorio
   } catch (err) {
     throw new Error(`No se pudo crear el directorio de salida: ${resultPath}. Error: ${err.message}`);
   }  

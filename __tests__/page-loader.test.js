@@ -170,8 +170,7 @@ test("Debería lanzar un error si no puede guardar el archivo HTML", async () =>
 test("Debería lanzar un error si no existe el directorio de recursos", async () => {
  
   const urlToDownload = "https://codica.la/cursos";
-  const htmlContent = "<html><body>Contenido de prueba</body></html>";
-  const assetsDirname = "codica-la-cursos_files"; // Nombre de la carpeta donde estaran los recursos
+  const htmlContent = "<html><body>Contenido de prueba</body></html>";  
 
   // Mock de la respuesta HTTP
   nock("https://codica.la")
@@ -194,7 +193,7 @@ test("Debería lanzar un error si no existe el directorio de recursos", async ()
 
   await expect(pageLoader(urlToDownload, tempDir))
     .rejects
-    .toThrow(`Falló la solicitud HTTP para ${urlToDownload}. Error: No se pudo crear el directorio de salida: ${tempDir}/${assetsDirname}. Error: Simulated mkdir permission error`);  
+    .toThrow(`No se pudo crear el directorio de salida: ${tempDir}. Error: Simulated mkdir permission error`);  
 
   mkdirSpy.mockRestore(); // Restauramos mkdir
   console.error = originalConsoleError; // Restaurar console.error
