@@ -7,7 +7,7 @@ program
   .name('page-loader')
   .description('Page loader utility')
   .version('1.0.0')
-  .option('-o, --output [dir]', 'output dir (default: current dir)', '.')
+  .option('-o, --output [dir]', 'output dir (default: current dir)')
   .argument('<url>', 'URL to download')
   .action(async (url, options) => {
     try {

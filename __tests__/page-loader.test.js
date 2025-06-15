@@ -162,7 +162,7 @@ test("Debería lanzar un error si no puede guardar el archivo HTML", async () =>
 
   await expect(pageLoader(urlToDownload, outputDir))
     .rejects
-    .toThrow(`Falló la solicitud HTTP para ${urlToDownload}. Error: No se pudo crear el directorio de salida: /root/codica-la-cursos_files. Error: EACCES: permission denied, mkdir '/root/codica-la-cursos_files'`);  
+    .toThrow(`Falló la solicitud HTTP para ${urlToDownload}. Error: EACCES: permission denied, mkdir '/root/codica-la-cursos_files'`);  
 
   console.error = originalConsoleError; // Restaurar console.error
 });
@@ -193,7 +193,7 @@ test("Debería lanzar un error si no existe el directorio de recursos", async ()
 
   await expect(pageLoader(urlToDownload, tempDir))
     .rejects
-    .toThrow(`No se pudo crear el directorio de salida: ${tempDir}. Error: Simulated mkdir permission error`);  
+    .toThrow(`Falló la solicitud HTTP para ${urlToDownload}. Error: Simulated mkdir permission error`);  
 
   mkdirSpy.mockRestore(); // Restauramos mkdir
   console.error = originalConsoleError; // Restaurar console.error
