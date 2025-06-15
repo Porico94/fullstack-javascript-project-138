@@ -109,12 +109,12 @@ const downloadResource = (url, outputDir) => {
               .get(resourceUrl, { responseType })
               .then((res) => {
                 if (responseType === "text") {
-                  const text = res.data;
-                  const cleaned = text.startsWith("\uFEFF")
-                    ? text.slice(1)
-                    : text;
-                  const normalized = cleaned.replace(/\r/g, "");
-                  return fs.writeFile(fullPathFile, normalized, "utf8");
+                  const rawBuffer = res.data;
+                  const utf8Text = rawBuffer.toString("utf8");
+                  const withoutBom = utf8Text
+                    .replace(/^\uFEFF/, "")
+                    .replace(/\r/g, "");
+                  return fs.writeFile(fullPathFile, withoutBom, "utf8");
                 }
                 return fs.writeFile(fullPathFile, res.data);
               })
