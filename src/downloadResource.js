@@ -104,7 +104,7 @@ const downloadResource = (url, outputDir) => {
           const responseType = type === "text" ? "text" : "arraybuffer"; // Determinamos el responseType basado en el 'type' que agregamos
           return axios.get(resourceUrl, { responseType })
             .then((res) => {
-              const content = responseType === 'text' ? res.data.replace(/^\uFEFF/, '').replace(/\r/g, '') : res.data;
+              const content = responseType === 'text' ? Buffer.from(res.data.toString().replace(/^\uFEFF/, '').replace(/\r/g, '')) : res.data;
                 return fs.writeFile(fullPathFile, content);
               })
               .catch((e) => {
