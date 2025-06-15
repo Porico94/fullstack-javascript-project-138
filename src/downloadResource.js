@@ -111,7 +111,7 @@ const downloadResource = (url, outputDir) => {
               .then((res) => {
                 const rawBuffer = res.data;
                 if (type === "text") {
-                  const utf8Text = Buffer.from(rawBuffer).toString("utf8");
+                  const utf8Text = rawBuffer.toString("utf8"); // directamente
                   const cleanText = utf8Text
                     .replace(/^\uFEFF/, "")
                     .replace(/\r/g, "");
