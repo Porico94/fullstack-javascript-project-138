@@ -104,19 +104,20 @@ const downloadResource = (url, outputDir) => {
           title: `Descargando ${resourceUrl}`,
           task: () => {
             const fullPathFile = path.join(resultPath, filename); // fullpath = "/ruta-actual/codica-la-cursos_files/codica-la-nodejs.png"
-            const responseType = type === "text" ? "text" : "arraybuffer"; // Determinamos el responseType basado en el 'type' que agregamos
+            const responseType =
+              type === "text" ? "arraybuffer" : "arraybuffer"; // Determinamos el responseType basado en el 'type' que agregamos
             return axios
               .get(resourceUrl, { responseType })
               .then((res) => {
-                if (responseType === "text") {
-                  const rawBuffer = res.data;
-                  const utf8Text = rawBuffer.toString("utf8");
-                  const withoutBom = utf8Text
+                const rawBuffer = res.data;
+                if (type === "text") {
+                  const utf8Text = Buffer.from(rawBuffer).toString("utf8");
+                  const cleanText = utf8Text
                     .replace(/^\uFEFF/, "")
                     .replace(/\r/g, "");
-                  return fs.writeFile(fullPathFile, withoutBom, "utf8");
+                  return fs.writeFile(fullPathFile, cleanText, "utf8");
                 }
-                return fs.writeFile(fullPathFile, res.data);
+                return fs.writeFile(fullPathFile, rawBuffer);
               })
               .catch((e) => {
                 log(`Error en ${resourceUrl}: ${e.message}`);
