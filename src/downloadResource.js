@@ -108,13 +108,13 @@ const downloadResource = (url, outputDir) => {
             return axios
               .get(resourceUrl, { responseType })
               .then((res) => {
-                const cleaned = res.data
-                  .toString()
-                  .replace(/^\uFEFF/, "")
-                  .replace(/\r/g, "");
-                return responseType === "text"
-                  ? fs.writeFile(fullPathFile, cleaned, "utf8")
-                  : fs.writeFile(fullPathFile, res.data);
+                if (responseType === "text") {
+                  const text = res.data
+                    .replace(/^\uFEFF/, "")
+                    .replace(/\r/g, "");
+                  return fs.writeFile(fullPathFile, text, "utf8");
+                }
+                return fs.writeFile(fullPathFile, res.data);
               })
               .catch((e) => {
                 log(`Error en ${resourceUrl}: ${e.message}`);
