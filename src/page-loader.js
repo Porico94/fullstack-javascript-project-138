@@ -11,11 +11,18 @@ const pageLoader = (url, outputDir = process.cwd()) => { //Para ejemplo url: htt
   log(`Iniciando page-loader para URL: ${url} en directorio: ${outputDir}`);
   const filename = cleanFilename(url, ".html"); // codica-la-cursos.html
   const filePath = path.join(outputDir, filename); // outputDir/codica-la-cursos.html
-   
-  log(`Iniciando la descarga HTML y recursos de ${filename}`);
-  return downloadResource(url, outputDir)
+  
+  log(`Verificando si el directorio de salida existe: ${outputDir}`);
+  return fs.access(outputDir)
+    .catch(() => {
+      throw new Error(`El directorio de salida no existe: ${outputDir}`);
+    })
+    .then(() => {
+      log(`Directorio verificado. Iniciando descarga HTML y recursos de ${filename}`);
+      return downloadResource(url, outputDir);
+    })
     .then((htmlModified) => {
-      log(`Descarga de recursos y HTML modificado completado`);
+      log(`Descarga de recursos completada. Guardando archivo en ${filePath}`);
       return fs.writeFile(filePath, htmlModified)
         .then(() => {
           log(`HTML modificado guardado en: ${filePath}`);

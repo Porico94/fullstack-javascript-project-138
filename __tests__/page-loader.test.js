@@ -198,3 +198,25 @@ test("Debería lanzar un error si no existe el directorio de recursos", async ()
   mkdirSpy.mockRestore(); // Restauramos mkdir
   console.error = originalConsoleError; // Restaurar console.error
 });
+
+test("Debería lanzar un error si el directorio de salida no existe", async () => {
+  const nonExistentDir = path.join(tempDir, 'no-such-dir'); // directorio que no existe
+  const htmlContent = "<html><body>Contenido de prueba</body></html>";
+  const urlToDownload = "https://example.com/page";
+
+  // Simulamos una página válida
+  nock("https://example.com")
+    .get("/page")
+    .reply(200, htmlContent);
+
+  // Silenciamos el error en consola para evitar ruido
+  const originalConsoleError = console.error;
+  console.error = jest.fn();
+
+  await expect(pageLoader(urlToDownload, nonExistentDir))
+    .rejects
+    .toThrow(`El directorio de salida no existe: ${nonExistentDir}`);
+
+  // Restauramos console.error
+  console.error = originalConsoleError;
+});
