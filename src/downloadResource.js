@@ -110,13 +110,22 @@ const downloadResource = (url, outputDir) => {
               .get(resourceUrl, { responseType })
               .then((res) => {
                 const rawBuffer = res.data;
+
                 if (type === "text") {
-                  const utf8Text = rawBuffer.toString("utf8"); // directamente
-                  const cleanText = utf8Text
-                    .replace(/^\uFEFF/, "")
+                  // Detectar BOM manualmente y eliminar los 3 primeros bytes si existen (0xEF, 0xBB, 0xBF)
+                  const hasBom =
+                    rawBuffer[0] === 0xef &&
+                    rawBuffer[1] === 0xbb &&
+                    rawBuffer[2] === 0xbf;
+                  const cleanBuffer = hasBom ? rawBuffer.slice(3) : rawBuffer;
+
+                  // Convertimos el buffer limpio a texto, y limpiamos los saltos de línea tipo \r
+                  const cleanText = cleanBuffer
+                    .toString("utf8")
                     .replace(/\r/g, "");
                   return fs.writeFile(fullPathFile, cleanText, "utf8");
                 }
+
                 return fs.writeFile(fullPathFile, rawBuffer);
               })
               .catch((e) => {
