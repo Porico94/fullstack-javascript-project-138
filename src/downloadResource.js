@@ -112,18 +112,18 @@ const downloadResource = (url, outputDir) => {
                 const rawBuffer = res.data;
 
                 if (type === "text") {
-                  // Detectar BOM manualmente y eliminar los 3 primeros bytes si existen (0xEF, 0xBB, 0xBF)
-                  const hasBom =
-                    rawBuffer[0] === 0xef &&
-                    rawBuffer[1] === 0xbb &&
-                    rawBuffer[2] === 0xbf;
-                  const cleanBuffer = hasBom ? rawBuffer.slice(3) : rawBuffer;
+                  const buffer = Buffer.from(rawBuffer);
 
-                  // Convertimos el buffer limpio a texto, y limpiamos los saltos de línea tipo \r
-                  const cleanText = cleanBuffer
+                  // Verificamos los primeros 3 bytes del BOM UTF-8 (0xEF 0xBB 0xBF)
+                  const bom = buffer.slice(0, 3).toString("hex");
+                  const hasBom = bom === "efbbbf";
+
+                  const cleanBuffer = hasBom ? buffer.slice(3) : buffer;
+                  const content = cleanBuffer
                     .toString("utf8")
                     .replace(/\r/g, "");
-                  return fs.writeFile(fullPathFile, cleanText, "utf8");
+
+                  return fs.writeFile(fullPathFile, content, "utf8");
                 }
 
                 return fs.writeFile(fullPathFile, rawBuffer);
