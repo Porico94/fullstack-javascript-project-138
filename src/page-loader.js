@@ -16,7 +16,7 @@ const downloadPage = (pageUrl, outputDirName = '') => { //Para ejemplo url: http
     return Promise.reject(new Error(`❌ No se puede usar el directorio restringido: ${outputDirName || process.cwd()}`));
   }
 
-  log('url', url);
+  log('url', pageUrl);
   log('output', sanitizedDir);
 
   const url = new URL(pageUrl);
