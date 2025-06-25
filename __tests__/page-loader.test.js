@@ -2,7 +2,7 @@ import os from "os"; // Para trabajar con directorios temporales del sistema ope
 import path from "path"; // Para manejar rutas de archivos
 import fs from "fs/promises"; // Para operaciones asíncronas de sistema de archivos
 import fsExtra from "fs-extra"; // Utilidad para borrar directorios temporales (más robusta que fs.rm)
-import pageLoader from "../src/page-loader"; // La función que vamos a probar
+import downloadPage from "../src/page-loader"; // La función que vamos a probar
 import * as cheerio from "cheerio"; // Para normalizar HTML y facilitar la comparación
 import nock from "nock";
 
@@ -78,10 +78,10 @@ test("Descargar el HTML principal y todos sus recursos(Imágenes, CSS, scripts) 
     .get("/cursos.html")
     .reply(200, fakeCanonicalHtmlData); // Responde con HTML básico
 
-  // Llamamos a la función pageLoader
-  await pageLoader(urlToDownload, tempDir);
+  // Llamamos a la función downloadPage
+  await downloadPage(urlToDownload, tempDir, assetsDirname);
 
-  // Primero, lee el HTML que tu pageLoader guardó
+  // Primero, lee el HTML que tu downloadPage guardó
   const downloadedFileContent = await fs.readFile(path.join(tempDir, "codica-la-cursos.html"), "utf-8"); 
 
   // Comprobamos que el archivo HTML principal tenga el contenido esperado
@@ -121,6 +121,7 @@ test("Descargar el HTML principal y todos sus recursos(Imágenes, CSS, scripts) 
 test("Debería lanzar un error si la solicitud HTTP principal falla", async () => {
     const urlThatFails = "https://nonexistent.com/page";
     const errorMessage = "Simulated network error";
+    const assetsDirname = "codica-la-cursos_files";
 
     // Configuración del mock de Nock para un error HTTP
     nock("https://nonexistent.com")
@@ -132,9 +133,9 @@ test("Debería lanzar un error si la solicitud HTTP principal falla", async () =
     // Sobreescribe console.error para que no haga nada durante este test
     console.error = jest.fn();
 
-    await expect(pageLoader(urlThatFails, tempDir))
+    await expect(downloadPage(urlThatFails, tempDir, assetsDirname))
       .rejects
-      .toThrow(`Falló la solicitud HTTP para ${urlThatFails}. Error: Request failed with status code 500`);
+      .toThrow(`Request failed with status code 500`);
 
     expect(nock.isDone()).toBe(true);
 
@@ -148,6 +149,7 @@ test("Debería lanzar un error si no puede guardar el archivo HTML", async () =>
 
   const urlToDownload = "https://codica.la/cursos";
   const htmlContent = "<html><body>Contenido de prueba</body></html>";
+  const assetsDirname = "codica-la-cursos_files";
 
   // Mock de la respuesta HTTP
   nock("https://codica.la")
@@ -160,9 +162,9 @@ test("Debería lanzar un error si no puede guardar el archivo HTML", async () =>
   const originalConsoleError = console.error;
   console.error = jest.fn();
 
-  await expect(pageLoader(urlToDownload, outputDir))
+  await expect(downloadPage(urlToDownload, outputDir, assetsDirname))
     .rejects
-    .toThrow(`Falló la solicitud HTTP para ${urlToDownload}. Error: EACCES: permission denied, mkdir '/root/codica-la-cursos_files'`);  
+    .toThrow(`EACCES: permission denied, mkdir '/root/codica-la-cursos_files'`);  
 
   console.error = originalConsoleError; // Restaurar console.error
 });
@@ -170,7 +172,8 @@ test("Debería lanzar un error si no puede guardar el archivo HTML", async () =>
 test("Debería lanzar un error si no existe el directorio de recursos", async () => {
  
   const urlToDownload = "https://codica.la/cursos";
-  const htmlContent = "<html><body>Contenido de prueba</body></html>";  
+  const htmlContent = "<html><body>Contenido de prueba</body></html>";
+  const assetsDirname = "codica-la-cursos_files";
 
   // Mock de la respuesta HTTP
   nock("https://codica.la")
@@ -191,9 +194,9 @@ test("Debería lanzar un error si no existe el directorio de recursos", async ()
   const originalConsoleError = console.error;
   console.error = jest.fn();
 
-  await expect(pageLoader(urlToDownload, tempDir))
+  await expect(downloadPage(urlToDownload, tempDir, assetsDirname))
     .rejects
-    .toThrow(`Falló la solicitud HTTP para ${urlToDownload}. Error: Simulated mkdir permission error`);  
+    .toThrow(`Simulated mkdir permission error`);  
 
   mkdirSpy.mockRestore(); // Restauramos mkdir
   console.error = originalConsoleError; // Restaurar console.error
@@ -203,6 +206,7 @@ test("Debería lanzar un error si el directorio de salida no existe", async () =
   const nonExistentDir = path.join(tempDir, 'no-such-dir'); // directorio que no existe
   const htmlContent = "<html><body>Contenido de prueba</body></html>";
   const urlToDownload = "https://example.com/page";
+  const assetsDirname = "codica-la-cursos_files";
 
   // Simulamos una página válida
   nock("https://example.com")
@@ -213,7 +217,7 @@ test("Debería lanzar un error si el directorio de salida no existe", async () =
   const originalConsoleError = console.error;
   console.error = jest.fn();
 
-  await expect(pageLoader(urlToDownload, nonExistentDir))
+  await expect(downloadPage(urlToDownload, nonExistentDir, assetsDirname))
     .rejects
     .toThrow(`El directorio de salida no existe: ${nonExistentDir}`);
 

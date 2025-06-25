@@ -4,13 +4,12 @@ import path from "path";
 import fs from "fs/promises";
 import debug from "debug";
 import Listr from "listr";
-import { prefixName, directoryName } from "./utils";
+import { prefixName } from "./utils";
 
 //inicializamos debug con un namespace personalizado
 const log = debug("page-loader:resource");
 
-const downloadResource = (url, outputDir) => {
-  const resultPath = path.join(outputDir, directoryName(url));
+const downloadResource = (url, outputDir, assetsDirname) => {
   let resources;
   let $;
 
@@ -95,7 +94,7 @@ const downloadResource = (url, outputDir) => {
 
       //Guardamos todos los array en uno solo, con get() se filtran los nulls
       resources = [...images, ...links, ...scripts].filter(Boolean); // filter(Boolean) por si algún map devolvió null explícitamente
-      return fs.mkdir(resultPath, { recursive: true }); //Creamos el directorio outputDir/codica-la-cursos_files, y {recursive: true} ayuda para no generar problemas si ya existe ese directorio
+      return fs.mkdir(outputDir, { recursive: true }); //Creamos el directorio outputDir/codica-la-cursos_files, y {recursive: true} ayuda para no generar problemas si ya existe ese directorio
     })
     .then(() => {
       //Guardamos cada elemento del array en la ruta, recordar { url, filename} son propiedades del array resources
@@ -103,7 +102,7 @@ const downloadResource = (url, outputDir) => {
         resources.map(({ url: resourceUrl, filename, type }) => ({
           title: `Descargando ${resourceUrl}`,
           task: () => {
-            const fullPathFile = path.join(resultPath, filename); // fullpath = "/ruta-actual/codica-la-cursos_files/codica-la-nodejs.png"
+            const fullPathFile = path.join(outputDir, filename); // fullpath = "/ruta-actual/codica-la-cursos_files/codica-la-nodejs.png"
             const responseType = type === "text" ? "text" : "arraybuffer"; // Determinamos el responseType basado en el 'type' que agregamos
             return axios
               .get(resourceUrl, { responseType })
@@ -156,7 +155,7 @@ const downloadResource = (url, outputDir) => {
           );
 
           if (resource) {
-            const localPath = path.join(directoryName(url), resource.filename);
+            const localPath = path.join(assetsDirname, resource.filename);
             $(element).attr(attr, localPath);
             log(
               `Modificamos el recurso ${attr} a la ruta local: ${resource.filename}`

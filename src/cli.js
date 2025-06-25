@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import pageLoader from './page-loader.js';
+import downloadPage from './page-loader.js';
 
 const program = new Command();
 
@@ -11,7 +11,7 @@ program
   .argument('<url>', 'URL to download')
   .action(async (url, options) => {
     try {
-      const pathToFile = await pageLoader(url, options.output);
+      const pathToFile = await downloadPage(url, options.output);
       console.log(`Page saved to: ${pathToFile}`);
     } catch (error) {
       console.error('Error:', error.message);
