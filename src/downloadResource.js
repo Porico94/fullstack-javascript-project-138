@@ -110,14 +110,12 @@ const downloadResource = (url, outputDir, assetsDirname) => {
                 const rawBuffer = res.data;
 
                 if (type === "text") {
-                  const buffer = Buffer.from(rawBuffer);
-                  const bom = buffer.slice(0, 3).toString("hex");
-                  const hasBom = bom === "efbbbf";
-                  const cleanBuffer = hasBom ? buffer.slice(3) : buffer;
-                  const cleanText = cleanBuffer
-                    .toString("utf8")
-                    .replace(/\r/g, "");
-                  return fs.writeFile(fullPathFile, cleanText, "utf8");
+                  const text = res.data; // axios ya devuelve texto si responseType es "text"
+                  const cleanText = text.startsWith("\uFEFF")
+                    ? text.slice(1)
+                    : text;
+                  const finalText = cleanText.replace(/\r/g, "");
+                  return fs.writeFile(fullPathFile, finalText, "utf8");
                 }
 
                 // Para binarios, guardamos el buffer sin modificar
