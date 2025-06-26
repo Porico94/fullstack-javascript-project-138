@@ -6,8 +6,6 @@ import * as cheerio from 'cheerio'; // Para normalizar HTML y facilitar la compa
 import nock from 'nock';
 import downloadPage from '../src/page-loader'; // La función que vamos a probar
 
-// Función para normalizar el HTML antes de compararlo elimina espacios extra y saltos de línea para evitar fallos de prueba
-// por diferencias triviales de formato.
 const normalizeHtml = (html) => {
   return cheerio
     .load(html)
@@ -20,7 +18,7 @@ let tempDir; // Variable para almacenar la ruta del directorio temporal
 const fixturesPath = path.join(__dirname, '__fixtures__'); // Ruta base para los archivos de prueba (fixtures)
 
 beforeEach(async () => {
-  // `beforeEach` se ejecuta antes de cada prueba individual.  
+  // `beforeEach` se ejecuta antes de cada prueba individual.
   // Crea un directorio temporal único para cada prueba.
   tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'page-loader-test-'));
   // Esto asegura que ninguna solicitud HTTP real salga de tu máquina durante las pruebas.
@@ -119,22 +117,22 @@ test('Descargar el HTML principal y todos sus recursos(Imágenes, CSS, scripts) 
 });
 
 test('Debería lanzar un error si la solicitud HTTP principal falla', async () => {
-    const urlThatFails = 'https://nonexistent.com/page';
-    const errorMessage = 'Simulated network error';
+  const urlThatFails = 'https://nonexistent.com/page';
+  const errorMessage = 'Simulated network error';
     
-    // Configuración del mock de Nock para un error HTTP
-    nock('https://nonexistent.com')
-      .get('/page')
-      .reply(500, errorMessage); // Simula un error 500 con un mensaje de error
+  // Configuración del mock de Nock para un error HTTP
+  nock('https://nonexistent.com')
+    .get('/page')
+    .reply(500, errorMessage); // Simula un error 500 con un mensaje de error
 
-    // Guarda la implementación original de console.error
-    const originalConsoleError = console.error;
-    // Sobreescribe console.error para que no haga nada durante este test
-    console.error = jest.fn();
+  // Guarda la implementación original de console.error
+  const originalConsoleError = console.error;
+  // Sobreescribe console.error para que no haga nada durante este test
+  console.error = jest.fn();
 
-    await expect(downloadPage(urlThatFails, tempDir))
-      .rejects
-      .toThrow(`Request failed with status code 500`);
+  await expect(downloadPage(urlThatFails, tempDir))
+    .rejects
+    .toThrow(`Request failed with status code 500`);
 
     expect(nock.isDone()).toBe(true);
 

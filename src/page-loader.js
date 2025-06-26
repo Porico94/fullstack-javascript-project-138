@@ -74,15 +74,15 @@ const downloadPage = (pageUrl, outputDirName = '') => {
   if (!sanitizedDir) {
     return Promise.reject(
       new Error(
-        `❌ No se puede usar el directorio restringido: ${
+        `No se puede usar el directorio restringido: ${
           outputDirName || process.cwd()
         }`
       )
-    );
-  }
+    )
+  };
 
-  //log('url', pageUrl);
-  //log('output', sanitizedDir);
+  log('url', pageUrl);
+  log('output', sanitizedDir);
 
   const url = new URL(pageUrl);
   const slug = `${url.hostname}${url.pathname}`; // 'codica.la/cursos'
@@ -94,7 +94,8 @@ const downloadPage = (pageUrl, outputDirName = '') => {
     `${filename}${extension}`
   ); // rutaActual/outputDirName/codica-la-cursos.html
   const assetsDirname = urlToDirname(slug); // 'codica-la-cursos_files'
-  const fullOutputAssetsDirname = path.join(fullOutputDirname, assetsDirname); // rutaActual/outputDirName/codica-la-cursos_files
+  const fullOutputAssetsDirname = path.join(fullOutputDirname, assetsDirname);
+  // rutaActual/outputDirName/codica-la-cursos_files
 
   let data;
 
