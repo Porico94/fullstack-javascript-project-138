@@ -12,7 +12,7 @@ let tempDir;
 const fixturesPath = path.join(__dirname, '__fixtures__');
 
 beforeEach(async () => {
-  tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'page-loader-test-'));  
+  tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'page-loader-test-'));
   nock.disableNetConnect();
 });
 
