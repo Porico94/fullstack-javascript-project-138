@@ -89,7 +89,7 @@ const downloadPage = (pageUrl, outputDirName = '') => {
       const html = response.data;
       data = processResources(url.origin, assetsDirname, html);
       log('create (if not exists) directory for assets', fullOutputAssetsDirname);
-      return fs.access(fullOutputAssetsDirname).catch(() => fs.mkdir(fullOutputAssetsDirname));
+      return (fs.access(fullOutputAssetsDirname).catch(() => fs.mkdir(fullOutputAssetsDirname)));
     })
     .then(() => {
       log(`HTML saved: ${fullOutputFilename}`);
