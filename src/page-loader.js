@@ -1,11 +1,49 @@
-import fs from "fs/promises";
+import axios from 'axios';
 import path from "path";
-import downloadResource from "./downloadResource.js";
+import { promises as fs } from 'fs';
+import { URL } from 'url';
+import * as cheerio from 'cheerio';
 import debug from 'debug';
+import _ from 'lodash';
+import Listr from 'listr';
 import { urlToFilename, urlToDirname, getExtension, sanitizeOutputDir } from "./utils.js";
 
 //inicializamos debug con un namespace personalizado
-const log = debug('page-loader:main');
+const log = debug('page-loader');
+
+// Procesa y reemplaza las URLs de recursos dentro del HTML
+const processResource = ($, tagName, attrName, baseUrl, baseDirname, assets) => {
+  const $elements = $(tagName).toArray();
+  const elementsWithUrls = $elements
+    .map((element) => $(element))
+    .filter(($element) => $element.attr(attrName))
+    .map(($element) => ({ $element, url: new URL($element.attr(attrName), baseUrl) }))
+    .filter(({ url }) => url.origin === baseUrl);
+
+  elementsWithUrls.forEach(({ $element, url }) => {
+    const slug = urlToFilename(`${url.hostname}${url.pathname}`);
+    const filepath = path.join(baseDirname, slug);
+    assets.push({ url, filename: slug });
+    $element.attr(attrName, filepath);
+  });
+};
+
+//  Obtiene y procesa todos los recursos del HTML
+const processResources = (baseUrl, baseDirname, html) => {
+  const $ = cheerio.load(html, { decodeEntities: false });
+  const assets = [];
+
+  processResource($, 'img', 'src', baseUrl, baseDirname, assets);
+  processResource($, 'link', 'href', baseUrl, baseDirname, assets);
+  processResource($, 'script', 'src', baseUrl, baseDirname, assets);
+
+  return { html: $.html(), assets };
+};
+
+const downloadAsset = (dirname, { url, filename }) => axios.get(url.toString(), { responseType: 'arraybuffer' }).then((response) => {
+  const fullPath = path.join(dirname, filename);
+  return fs.writeFile(fullPath, response.data);
+});
 
 const downloadPage = (pageUrl, outputDirName = '') => { //Para ejemplo url: https://codica.la/cursos y ouputDir (ruta)
   log(`Iniciando page-loader para URL: ${pageUrl} en directorio: ${outputDirName}`);
@@ -28,19 +66,37 @@ const downloadPage = (pageUrl, outputDirName = '') => { //Para ejemplo url: http
   const assetsDirname = urlToDirname(slug); // 'codica-la-cursos_files'
   const fullOutputAssetsDirname = path.join(fullOutputDirname, assetsDirname); // rutaActual/outputDirName/codica-la-cursos_files
 
-  return fs
-    .access(fullOutputDirname)
-    .catch(() => {
-      throw new Error(`El directorio de salida no existe: ${fullOutputDirname}`);
+  let data;
+
+  return axios
+    .get(pageUrl)
+    .then((response) => {
+      const html = response.data;
+
+      data = processResources(url.origin, assetsDirname, html);
+      log('create (if not exists) directory for assets', fullOutputAssetsDirname);
+      return fs.access(fullOutputAssetsDirname).catch(() => fs.mkdir(fullOutputAssetsDirname));
     })
     .then(() => {
-      log(`Descargando página desde ${pageUrl}`);
-      return downloadResource(pageUrl, fullOutputAssetsDirname, assetsDirname);
+      log(`HTML saved: ${fullOutputFilename}`);
+      return fs.writeFile(fullOutputFilename, data.html);
     })
-    .then((modifiedHTML) => {
-      log(`Guardando HTML modificado en ${fullOutputFilename}`);
-      return fs.writeFile(fullOutputFilename, modifiedHTML, "utf8").then(() => fullOutputFilename);
-    });        
+    .then(() => {
+      const tasks = data.assets.map((asset) => {
+        log('asset', asset.url.toString(), asset.filename);
+        return {
+          title: asset.url.toString(),
+          task: () => downloadAsset(fullOutputAssetsDirname, asset).catch(_.noop),
+        };
+      })
+
+      const listr = new Listr(tasks, { concurrent: true });
+      return listr.run();
+    })
+    .then(() => {
+      log(`File successfully saved at: ${fullOutputFilename}`);
+      return { filepath: fullOutputFilename };
+    });    
 };
 
 export default downloadPage;
