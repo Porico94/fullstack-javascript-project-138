@@ -17,14 +17,7 @@ import {
 const log = debug('page-loader');
 
 // Procesa y reemplaza las URLs de recursos dentro del HTML
-const processResource = (
-  $,
-  tagName,
-  attrName,
-  baseUrl,
-  baseDirname,
-  assets
-) => {
+const processResource = ($, tagName, attrName, baseUrl, baseDirname, assets) => {
   const $elements = $(tagName).toArray();
   const elementsWithUrls = $elements
     .map((element) => $(element))
@@ -63,39 +56,30 @@ const downloadAsset = (dirname, { url, filename }) =>
       return fs.writeFile(fullPath, response.data);
     });
 
-const downloadPage = (pageUrl, outputDirName = '') => {
-  // Para ejemplo url: https://codica.la/cursos y ouputDir (ruta)
-  log(
-    `Iniciando page-loader para URL: ${pageUrl} en directorio: ${outputDirName}`
-  );
+const downloadPage = (pageUrl, outputDirName = '') => {  
+  log(`Iniciando page-loader para URL: ${pageUrl} en directorio: ${outputDirName}`);
 
   const sanitizedDir = sanitizeOutputDir(outputDirName);
 
   if (!sanitizedDir) {
     return Promise.reject(
       new Error(
-        `No se puede usar el directorio restringido: ${
-          outputDirName || process.cwd()
-        }`
-      )
-    )
-  };
+        `No se puede usar el directorio restringido: ${outputDirName || process.cwd()}`,
+      ),
+    );
+  }
 
   log('url', pageUrl);
   log('output', sanitizedDir);
 
   const url = new URL(pageUrl);
-  const slug = `${url.hostname}${url.pathname}`; // 'codica.la/cursos'
-  const filename = urlToFilename(slug); // 'codica-la-cursos.html'
-  const fullOutputDirname = path.resolve(sanitizedDir); // rutaActual/outputDirName
-  const extension = getExtension(filename) === '.html' ? '' : '.html'; // ''
-  const fullOutputFilename = path.join(
-    fullOutputDirname,
-    `${filename}${extension}`
-  ); // rutaActual/outputDirName/codica-la-cursos.html
-  const assetsDirname = urlToDirname(slug); // 'codica-la-cursos_files'
+  const slug = `${url.hostname}${url.pathname}`;
+  const filename = urlToFilename(slug);
+  const fullOutputDirname = path.resolve(sanitizedDir);
+  const extension = getExtension(filename) === '.html' ? '' : '.html';
+  const fullOutputFilename = path.join(fullOutputDirname, `${filename}${extension}`);
+  const assetsDirname = urlToDirname(slug)
   const fullOutputAssetsDirname = path.join(fullOutputDirname, assetsDirname);
-  // rutaActual/outputDirName/codica-la-cursos_files
 
   let data;
 
@@ -103,15 +87,9 @@ const downloadPage = (pageUrl, outputDirName = '') => {
     .get(pageUrl)
     .then((response) => {
       const html = response.data;
-
       data = processResources(url.origin, assetsDirname, html);
-      log(
-        'create (if not exists) directory for assets',
-        fullOutputAssetsDirname
-      );
-      return fs
-        .access(fullOutputAssetsDirname)
-        .catch(() => fs.mkdir(fullOutputAssetsDirname));
+      log('create (if not exists) directory for assets', fullOutputAssetsDirname);
+      return fs.access(fullOutputAssetsDirname).catch(() => fs.mkdir(fullOutputAssetsDirname));
     })
     .then(() => {
       log(`HTML saved: ${fullOutputFilename}`);
@@ -122,8 +100,7 @@ const downloadPage = (pageUrl, outputDirName = '') => {
         log('asset', asset.url.toString(), asset.filename);
         return {
           title: asset.url.toString(),
-          task: () =>
-            downloadAsset(fullOutputAssetsDirname, asset).catch(_.noop),
+          task: () => downloadAsset(fullOutputAssetsDirname, asset).catch(_.noop),
         };
       });
 
