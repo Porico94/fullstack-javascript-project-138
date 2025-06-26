@@ -1,23 +1,38 @@
 import axios from 'axios';
-import path from "path";
+import path from 'path';
 import { promises as fs } from 'fs';
 import { URL } from 'url';
 import * as cheerio from 'cheerio';
 import debug from 'debug';
 import _ from 'lodash';
 import Listr from 'listr';
-import { urlToFilename, urlToDirname, getExtension, sanitizeOutputDir } from "./utils.js";
+import {
+  urlToFilename,
+  urlToDirname,
+  getExtension,
+  sanitizeOutputDir,
+} from './utils.js';
 
-//inicializamos debug con un namespace personalizado
+// Inicializamos debug con un namespace personalizado
 const log = debug('page-loader');
 
 // Procesa y reemplaza las URLs de recursos dentro del HTML
-const processResource = ($, tagName, attrName, baseUrl, baseDirname, assets) => {
+const processResource = (
+  $,
+  tagName,
+  attrName,
+  baseUrl,
+  baseDirname,
+  assets
+) => {
   const $elements = $(tagName).toArray();
   const elementsWithUrls = $elements
     .map((element) => $(element))
     .filter(($element) => $element.attr(attrName))
-    .map(($element) => ({ $element, url: new URL($element.attr(attrName), baseUrl) }))
+    .map(($element) => ({
+      $element,
+      url: new URL($element.attr(attrName), baseUrl),
+    }))
     .filter(({ url }) => url.origin === baseUrl);
 
   elementsWithUrls.forEach(({ $element, url }) => {
@@ -28,7 +43,7 @@ const processResource = ($, tagName, attrName, baseUrl, baseDirname, assets) => 
   });
 };
 
-//  Obtiene y procesa todos los recursos del HTML
+// Obtiene y procesa todos los recursos del HTML
 const processResources = (baseUrl, baseDirname, html) => {
   const $ = cheerio.load(html, { decodeEntities: false });
   const assets = [];
@@ -40,18 +55,30 @@ const processResources = (baseUrl, baseDirname, html) => {
   return { html: $.html(), assets };
 };
 
-const downloadAsset = (dirname, { url, filename }) => axios.get(url.toString(), { responseType: 'arraybuffer' }).then((response) => {
-  const fullPath = path.join(dirname, filename);
-  return fs.writeFile(fullPath, response.data);
-});
+const downloadAsset = (dirname, { url, filename }) =>
+  axios
+    .get(url.toString(), { responseType: 'arraybuffer' })
+    .then((response) => {
+      const fullPath = path.join(dirname, filename);
+      return fs.writeFile(fullPath, response.data);
+    });
 
-const downloadPage = (pageUrl, outputDirName = '') => { //Para ejemplo url: https://codica.la/cursos y ouputDir (ruta)
-  log(`Iniciando page-loader para URL: ${pageUrl} en directorio: ${outputDirName}`);
+const downloadPage = (pageUrl, outputDirName = '') => {
+  // Para ejemplo url: https://codica.la/cursos y ouputDir (ruta)
+  log(
+    `Iniciando page-loader para URL: ${pageUrl} en directorio: ${outputDirName}`
+  );
 
   const sanitizedDir = sanitizeOutputDir(outputDirName);
 
   if (!sanitizedDir) {
-    return Promise.reject(new Error(`❌ No se puede usar el directorio restringido: ${outputDirName || process.cwd()}`));
+    return Promise.reject(
+      new Error(
+        `❌ No se puede usar el directorio restringido: ${
+          outputDirName || process.cwd()
+        }`
+      )
+    );
   }
 
   log('url', pageUrl);
@@ -60,9 +87,12 @@ const downloadPage = (pageUrl, outputDirName = '') => { //Para ejemplo url: http
   const url = new URL(pageUrl);
   const slug = `${url.hostname}${url.pathname}`; // 'codica.la/cursos'
   const filename = urlToFilename(slug); // 'codica-la-cursos.html'
-  const fullOutputDirname = path.resolve(sanitizedDir); // rutaActual/outputDirName 
+  const fullOutputDirname = path.resolve(sanitizedDir); // rutaActual/outputDirName
   const extension = getExtension(filename) === '.html' ? '' : '.html'; // ''
-  const fullOutputFilename = path.join(fullOutputDirname, `${filename}${extension}`); // rutaActual/outputDirName/codica-la-cursos.html
+  const fullOutputFilename = path.join(
+    fullOutputDirname,
+    `${filename}${extension}`
+  ); // rutaActual/outputDirName/codica-la-cursos.html
   const assetsDirname = urlToDirname(slug); // 'codica-la-cursos_files'
   const fullOutputAssetsDirname = path.join(fullOutputDirname, assetsDirname); // rutaActual/outputDirName/codica-la-cursos_files
 
@@ -74,8 +104,13 @@ const downloadPage = (pageUrl, outputDirName = '') => { //Para ejemplo url: http
       const html = response.data;
 
       data = processResources(url.origin, assetsDirname, html);
-      log('create (if not exists) directory for assets', fullOutputAssetsDirname);
-      return fs.access(fullOutputAssetsDirname).catch(() => fs.mkdir(fullOutputAssetsDirname));
+      log(
+        'create (if not exists) directory for assets',
+        fullOutputAssetsDirname
+      );
+      return fs
+        .access(fullOutputAssetsDirname)
+        .catch(() => fs.mkdir(fullOutputAssetsDirname));
     })
     .then(() => {
       log(`HTML saved: ${fullOutputFilename}`);
@@ -86,9 +121,10 @@ const downloadPage = (pageUrl, outputDirName = '') => { //Para ejemplo url: http
         log('asset', asset.url.toString(), asset.filename);
         return {
           title: asset.url.toString(),
-          task: () => downloadAsset(fullOutputAssetsDirname, asset).catch(_.noop),
+          task: () =>
+            downloadAsset(fullOutputAssetsDirname, asset).catch(_.noop),
         };
-      })
+      });
 
       const listr = new Listr(tasks, { concurrent: true });
       return listr.run();
@@ -96,7 +132,7 @@ const downloadPage = (pageUrl, outputDirName = '') => { //Para ejemplo url: http
     .then(() => {
       log(`File successfully saved at: ${fullOutputFilename}`);
       return { filepath: fullOutputFilename };
-    });    
+    });
 };
 
 export default downloadPage;
