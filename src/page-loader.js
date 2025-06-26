@@ -81,8 +81,8 @@ const downloadPage = (pageUrl, outputDirName = '') => {
     );
   }
 
-  log('url', pageUrl);
-  log('output', sanitizedDir);
+  //log('url', pageUrl);
+  //log('output', sanitizedDir);
 
   const url = new URL(pageUrl);
   const slug = `${url.hostname}${url.pathname}`; // 'codica.la/cursos'
