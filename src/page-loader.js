@@ -48,13 +48,12 @@ const processResources = (baseUrl, baseDirname, html) => {
   return { html: $.html(), assets };
 };
 
-const downloadAsset = (dirname, { url, filename }) =>
-  axios
-    .get(url.toString(), { responseType: 'arraybuffer' })
-    .then((response) => {
-      const fullPath = path.join(dirname, filename);
-      return fs.writeFile(fullPath, response.data);
-    });
+const downloadAsset = (dirname, { url, filename }) => axios
+  .get(url.toString(), { responseType: 'arraybuffer' })
+  .then((response) => {
+    const fullPath = path.join(dirname, filename);
+    return fs.writeFile(fullPath, response.data);
+  });
 
 const downloadPage = (pageUrl, outputDirName = '') => {
   log(`Iniciando page-loader para URL: ${pageUrl} en directorio: ${outputDirName}`);
