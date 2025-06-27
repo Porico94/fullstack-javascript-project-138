@@ -34,9 +34,9 @@ test('Descargar el HTML principal y todos sus recursos(Imágenes, CSS, scripts)'
   const expectedModifiedHtmlContent = await fs.readFile(expectedModifiedHtmlFixturePath, 'utf-8');
 
   const fakeImageData = Buffer.from(
-    'data:image/png;base64,' +
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8A' +
-    'AAAASUVORK5CYII=',
+    'data:image/png;base64,'
+    + 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8A'
+    + 'AAAASUVORK5CYII=',
     'base64',
   );
   const fakeCssData = 'body { background-color: #f0f0f0; } /* Fake CSS content */';
