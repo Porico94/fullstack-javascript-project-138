@@ -56,7 +56,7 @@ const downloadAsset = (dirname, { url, filename }) =>
       return fs.writeFile(fullPath, response.data);
     });
 
-const downloadPage = (pageUrl, outputDirName = '') => {  
+const downloadPage = (pageUrl, outputDirName = '') => {
   log(`Iniciando page-loader para URL: ${pageUrl} en directorio: ${outputDirName}`);
 
   const sanitizedDir = sanitizeOutputDir(outputDirName);
@@ -78,7 +78,7 @@ const downloadPage = (pageUrl, outputDirName = '') => {
   const fullOutputDirname = path.resolve(sanitizedDir);
   const extension = getExtension(filename) === '.html' ? '' : '.html';
   const fullOutputFilename = path.join(fullOutputDirname, `${filename}${extension}`);
-  const assetsDirname = urlToDirname(slug)
+  const assetsDirname = urlToDirname(slug);
   const fullOutputAssetsDirname = path.join(fullOutputDirname, assetsDirname);
 
   let data;
