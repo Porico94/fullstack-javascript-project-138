@@ -62,11 +62,8 @@ const downloadPage = (pageUrl, outputDirName = '') => {
   const sanitizedDir = sanitizeOutputDir(outputDirName);
 
   if (!sanitizedDir) {
-    return Promise.reject(
-      new Error(
-        `No se puede usar el directorio restringido: ${outputDirName || process.cwd()}`,
-      ),
-    );
+    const msg = `No se puede usar el directorio restringido: ${outputDirName || process.cwd()}`;
+    return Promise.reject(new Error(msg));
   }
 
   log('url', pageUrl);
